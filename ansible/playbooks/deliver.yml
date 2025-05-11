@@ -5,18 +5,22 @@
 
   vars:
     releases_dir: "/var/www/_releases"
-    site_name: "default"
+    site_name: "default" # domain name
+    project_name: "{{ site_name }}" # repository folder name
+    project_path: "{{ playbook_dir }}/../../../{{ project_name }}/{{ site_build }}/" # path to repository folder
     site_build: "dist"
     site_version: "v0.0.1"
     temp_dir: "/tmp"
+    temp_archive: "{{ temp_dir }}/{{ site_name }}-{{ site_version }}.tar.gz"
+    release_path: "{{ releases_dir }}/{{ site_name }}/{{ site_version }}"
     file_owner: "www-data"
     file_group: "www-data"
-    file_mode: "2770" 
+    file_mode: "2770"
 
   tasks:
     - name: Check if source directory exists
       ansible.builtin.stat:
-        path: "{{ playbook_dir }}/../../../{{ site_name }}/{{ site_build }}/"
+        path: "{{ project_path }}"
       delegate_to: localhost
       connection: local
       become: false
@@ -24,12 +28,12 @@
 
     - name: Fail if source directory does not exist
       ansible.builtin.fail:
-        msg: "Source directory does not exist: {{ playbook_dir }}/../../../{{ site_name }}/{{ site_build }}/"
+        msg: "Source directory does not exist: {{ project_path }}"
       when: not src_dir_stat.stat.exists
 
     - name: Create tar file of the site
       ansible.builtin.shell:
-        cmd: tar -czf "{{ temp_dir }}/{{ site_name }}-{{ site_version }}.tar.gz" -C "{{ playbook_dir }}/../../../{{ site_name }}/{{ site_build }}/" .
+        cmd: tar -czf "{{ temp_archive }}" -C "{{ project_path }}" .
       delegate_to: localhost
       connection: local
       become: false
@@ -46,7 +50,7 @@
 
     - name: Ensure destination version directory exists
       ansible.builtin.file:
-        path: "{{ releases_dir }}/{{ site_name }}/{{ site_version }}"
+        path: "{{ release_path }}"
         state: directory
         owner: "{{ file_owner }}"
         group: "{{ file_group }}"
@@ -54,21 +58,21 @@
 
     - name: Copy tar file to remote server
       ansible.builtin.copy:
-        src: "{{ temp_dir }}/{{ site_name }}-{{ site_version }}.tar.gz"
-        dest: "{{ temp_dir }}/{{ site_name }}-{{ site_version }}.tar.gz"
+        src: "{{ temp_archive }}"
+        dest: "{{ temp_archive }}"
         mode: '0644'
 
     - name: Extract tar file on remote server
       ansible.builtin.unarchive:
-        src: "{{ temp_dir }}/{{ site_name }}-{{ site_version }}.tar.gz"
-        dest: "{{ releases_dir }}/{{ site_name }}/{{ site_version }}"
+        src: "{{ temp_archive }}"
+        dest: "{{ release_path }}"
         remote_src: yes
         owner: "{{ file_owner }}"
         group: "{{ file_group }}"
 
     - name: Set permissions and ownership
       ansible.builtin.file:
-        path: "{{ releases_dir }}/{{ site_name }}/{{ site_version }}"
+        path: "{{ release_path }}"
         state: directory
         owner: "{{ file_owner }}"
         group: "{{ file_group }}"
@@ -77,12 +81,12 @@
 
     - name: Clean up tar file on remote server
       ansible.builtin.file:
-        path: "{{ temp_dir }}/{{ site_name }}-{{ site_version }}.tar.gz"
+        path: "{{ temp_archive }}"
         state: absent
 
     - name: Clean up local tar file
       ansible.builtin.file:
-        path: "{{ temp_dir }}/{{ site_name }}-{{ site_version }}.tar.gz"
+        path: "{{ temp_archive }}"
         state: absent
       delegate_to: localhost
       connection: local
