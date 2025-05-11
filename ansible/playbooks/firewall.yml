@@ -1,0 +1,30 @@
+---
+- name: Allow OpenSSH, HTTP, and HTTPS in Ubuntu Firewall
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Ensure UFW is installed
+      apt:
+        name: ufw
+        state: present
+        update_cache: true
+
+    # Note that as ufw manages its own state, simply removing
+    # a rule=allow task can leave those ports exposed. Either use delete=true
+    # or a separate state=reset task
+    - name: Allow OpenSSH through UFW
+      # community.general is installed with ansible package. It is not included in ansible-core
+      community.general.ufw:
+        rule: allow
+        name: OpenSSH
+        # delete: true
+
+    - name: Enable UFW and set default to deny incoming
+      community.general.ufw:
+        state: enabled
+        default: deny
+
+# HTTP and HTTPS ports are:
+# open when setting up caddy (caddy.yml)
+# closed when uninstalling caddy (caddy-uninstall.yml)

@@ -1,0 +1,60 @@
+{
+    email {{ email }}
+}
+# email is not really needed. 
+# It is just for notifications about certificates
+
+# Redirect all www. to non-www for all domains
+www.332871.com, www.riotgrl.com, www.prefabricatedgoat.com, www.adamontenegro.com, www.bokamontenegro.com, www.danicagilic.com, www.kitesurfingmontenegro.com {
+    redir https://{labels.1}.{labels.0}{uri} permanent
+}
+
+# 332871.com (SPA)
+332871.com {
+    root * /var/www/332871.com
+    encode
+    try_files {path} /index.html
+    file_server
+}
+
+# riotgrl.com (static)
+riotgrl.com {
+    root * /var/www/riotgrl.com
+    encode
+    file_server
+}
+
+# prefabricatedgoat.com (static)
+prefabricatedgoat.com {
+    root * /var/www/prefabricatedgoat.com
+    encode
+    file_server
+}
+
+# adamontenegro.com (static)
+adamontenegro.com {
+    root * /var/www/adamontenegro.com
+    encode
+    file_server
+}
+
+# bokamontenegro.com (static)
+bokamontenegro.com {
+    root * /var/www/bokamontenegro.com
+    encode
+    file_server
+}
+
+# danicagilic.com (static)
+danicagilic.com {
+    root * /var/www/danicagilic.com
+    encode
+    file_server
+}
+
+# kitesurfingmontenegro.com (static)
+kitesurfingmontenegro.com {
+    root * /var/www/kitesurfingmontenegro.com
+    encode
+    file_server
+}

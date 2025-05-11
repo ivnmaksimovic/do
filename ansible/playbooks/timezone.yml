@@ -1,0 +1,7 @@
+- name: Set timezone and configure timesyncd
+  hosts: all
+  become: true
+
+  tasks:
+  - name: set timezone
+    shell: timedatectl set-timezone Europe/Stockholm

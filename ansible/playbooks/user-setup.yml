@@ -1,0 +1,31 @@
+---
+- name: Configure server user and permissions
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Create user with sudo privileges
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        groups: sudo,www-data
+        append: yes
+        shell: /bin/bash
+        create_home: yes
+        system: false
+
+    - name: Ensure .ssh directory exists for new user
+      ansible.builtin.file:
+        path: "/home/{{ user_name }}/.ssh"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0700'
+
+    - name: Copy authorized keys from root
+      ansible.builtin.copy:
+        src: /root/.ssh/authorized_keys
+        dest: "/home/{{ user_name }}/.ssh/authorized_keys"
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0600'
+        remote_src: yes

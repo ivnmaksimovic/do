@@ -1,0 +1,24 @@
+---
+- name: View deployment history
+  hosts: all
+  become: true
+
+  vars:
+    base_dir: "/var/www"
+    releases_dir: "{{ base_dir }}/_releases"
+    site_name: "default"
+    limit: 5  # Number of entries to show
+
+  tasks:
+    - name: Check if deployment log exists
+      ansible.builtin.stat:
+        path: "{{ releases_dir }}/logs/{{ site_name }}.log"
+      register: log_file
+    
+    - name: Read last x entries from log
+      command: tail -n {{ limit }} {{ releases_dir }}/logs/{{ site_name }}.log
+      register: log_content
+
+    - name: Display log content without formatting
+      debug:
+        msg: "{{ log_content.stdout_lines }}"

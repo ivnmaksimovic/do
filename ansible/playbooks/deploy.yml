@@ -1,0 +1,100 @@
+---
+- name: Gather facts as the SSH user
+  hosts: all
+  become: false
+  gather_facts: true
+  tasks: []
+
+- name: Deploy static site version
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    base_dir: "/var/www"
+    releases_dir: "{{ base_dir }}/_releases"
+    site_name: "default"
+    site_version: "v0.0.1"
+    file_owner: "www-data"
+    file_group: "www-data"
+    file_mode: "0750"
+    versions_to_keep: 5
+
+  tasks:
+    - name: Check if version exists
+      ansible.builtin.stat:
+        path: "{{ releases_dir }}/{{ site_name }}/{{ site_version }}"
+      register: version_dir_stat
+
+    - name: Fail if version does not exist
+      ansible.builtin.fail:
+        msg: "Version {{ site_version }} not found in {{ releases_dir }}/{{ site_name }}/"
+      when: not version_dir_stat.stat.exists
+
+    - name: Ensure central logs directory exists
+      ansible.builtin.file:
+        path: "{{ releases_dir }}/logs"
+        state: directory
+        owner: "{{ file_owner }}"
+        group: "{{ file_group }}"
+        mode: "0750"
+
+    - name: Create symlink to specified version
+      ansible.builtin.file:
+        src: "{{ releases_dir }}/{{ site_name }}/{{ site_version }}"
+        dest: "{{ base_dir }}/{{ site_name }}"
+        state: link
+        force: yes
+      become_user: "{{ file_owner }}"
+      register: symlink_result
+
+    - name: Get current timestamp
+      ansible.builtin.set_fact:
+        deploy_timestamp: "{{ ansible_date_time.iso8601 }}" # not local time!
+
+    - name: Get ansible connection user
+      ansible.builtin.set_fact:
+        ansible_user: "{{ ansible_user_id }}" # ssh user
+        # ansible_user: "{{ lookup('env', 'USER') }}" # local machine user
+
+    - name: Get client IP address
+      ansible.builtin.set_fact:
+        client_ip: "{{ ansible_env.SSH_CLIENT.split(' ')[0] | default('unknown') }}"
+      ignore_errors: true
+
+    - name: Get server information
+      ansible.builtin.set_fact:
+        server_hostname: "{{ ansible_hostname }}"
+        server_ip: "{{ ansible_default_ipv4.address }}"
+
+    - name: Append to deployment log
+      ansible.builtin.lineinfile:
+        path: "{{ releases_dir }}/logs/{{ site_name }}.log"
+        line: "{{ deploy_timestamp }} | {{ site_version }} | {{ server_hostname }} ({{ server_ip }}) | {{ ansible_user }} | {{ client_ip }}"
+        create: yes
+        owner: "{{ file_owner }}"
+        group: "{{ file_group }}"
+        mode: "0640"
+
+    - name: Get list of versions
+      ansible.builtin.find:
+        paths: "{{ releases_dir }}/{{ site_name }}"
+        file_type: directory
+        patterns: "v*"
+      register: versions
+
+    - name: Sort versions
+      ansible.builtin.set_fact:
+        sorted_versions: "{{ versions.files | sort(attribute='mtime') }}"
+      when: versions.files | length > 0
+
+    - name: Remove old versions
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ sorted_versions[0:-(versions_to_keep|int)] }}"
+      when: sorted_versions is defined and sorted_versions | length > versions_to_keep|int
+
+    - name: Display deployment information
+      ansible.builtin.debug:
+        msg: "{{ deploy_timestamp }} {{ site_name }}@{{ site_version }} deployed to {{ server_hostname }} ({{ server_ip }}) by {{ ansible_user }} from {{ client_ip }}"

@@ -1,0 +1,52 @@
+---
+- name: Install and configure Caddy server
+  hosts: all
+  become: true
+
+  roles:
+    - nvjacobo.caddy
+
+  tasks:
+    - name: Set /var/www directory permissions
+      ansible.builtin.file:
+        path: /var/www
+        state: directory
+        recurse: yes
+        owner: www-data
+        group: www-data
+        mode: '2770'  # Setgid bit (2) ensures new files inherit the www-data group
+
+    - name: Add caddy user to www-data group
+      ansible.builtin.user:
+        name: caddy
+        groups: www-data
+        append: yes
+
+    - name: Deploy Caddyfile
+      ansible.builtin.template:
+        src: templates/Caddyfile.j2
+        dest: /etc/caddy/Caddyfile
+        owner: caddy
+        group: www-data
+        mode: '0640'
+      notify: reload caddy
+    
+    # Just removing these task can leave ports open
+    # They are closed in caddy-uninstall.yml
+    - name: Allow HTTP through UFW
+      community.general.ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+
+    - name: Allow HTTPS through UFW
+      community.general.ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+
+  handlers:
+    - name: reload caddy
+      ansible.builtin.systemd:
+        name: caddy
+        state: reloaded

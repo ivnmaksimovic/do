@@ -1,0 +1,40 @@
+
+## Install roles locally (dependencies)
+This is only needed because some playbooks are dependant on some roles. Like caddy.yml.
+`ansible-galaxy role install -r ansible/roles/requirements.yml -p ansible/roles`
+
+## Setup inventory
+Copy `inventory.template` to `inventory`.
+For Digital Ocean copy Ansible Inventory DO from Bitwarden.
+
+## Run playbooks
+There is no need to pass inventory as it is set in `ansible.cfg`.
+Examples use `bob` as an example ssh user with permissions to hosts.
+
+
+- Setup user. Add it to sudo and www-data groups. Get ssh key from root. This is first and only task that needs to be run as `root`.
+  `ansible-playbook ansible/playbooks/user-setup.yml -e "user_name=bob" --user root`
+- Ping to test user permissions. Example of passing inventory.
+  `ansible -i ./ansible/inventories/inventory production -m ping --user bob`
+- Enable firewall.
+  `ansible-playbook ./ansible/playbooks/firewall.yml --user bob --ask-become-pass`
+- Set timezone.
+  `ansible-playbook ./ansible/playbooks/timezone.yml --user bob --ask-become-pass`
+- Maybe update packages.
+  `ansible-playbook ./ansible/playbooks/apt.yml --user bob --ask-become-pass`
+- Restart.
+  `ansible-playbook ./ansible/playbooks/restart.yml --user bob --ask-become-pass`
+- Install Caddy.
+  `ansible-playbook ansible/playbooks/caddy.yml -e "email=me@example.com" --user bob --ask-become-pass`
+	- Uninstall Caddy.
+    `ansible-playbook ./ansible/playbooks/caddy-uninstall.yml --user bob --ask-become-pass`
+- Deliver site `dist` folder to server.
+  `ansible-playbook ./ansible/playbooks/deliver.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
+- Deploy a version.
+  `ansible-playbook ./ansible/playbooks/deploy.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
+- Read deployment log.
+  `ansible-playbook ./ansible/playbooks/deployment-log.yml -e "site_name=adamontenegro.com limit=5" --user bob --ask-become-pass`
+
+## Tips
+To see all the magic variables
+`ansible <hostname> -m ansible.builtin.setup --user root`

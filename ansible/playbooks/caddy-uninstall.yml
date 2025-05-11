@@ -1,0 +1,65 @@
+---
+- name: Fully uninstall Caddy and clean all traces
+  hosts: all
+  become: true
+
+  tasks:
+    # Remove Caddy package and purge configs
+    - name: Remove Caddy package
+      ansible.builtin.apt:
+        name: caddy
+        state: absent
+        purge: yes  # Removes config files too
+
+    # Remove Caddy repository
+    - name: Remove Caddy repository
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/caddy-stable.list
+        state: absent
+
+    # Remove Caddy configuration and data
+    - name: Remove Caddy directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/caddy          # Config directory (from your template task)
+        - /var/lib/caddy      # Default data dir (created by Caddy)
+        - /var/log/caddy      # Logs (created by Caddy)
+
+    # Remove systemd service
+    - name: Remove Caddy service file
+      ansible.builtin.file:
+        path: /etc/systemd/system/caddy.service
+        state: absent
+
+    # Remove caddy user/group (created by nvjacobo.caddy role)
+    - name: Remove caddy user
+      ansible.builtin.user:
+        name: caddy
+        state: absent
+        remove: yes  # Deletes home directory
+
+    - name: Remove caddy group
+      ansible.builtin.group:
+        name: caddy
+        state: absent
+
+    - name: Close HTTP through UFW
+      community.general.ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+        delete: true
+
+    - name: Close HTTPS through UFW
+      community.general.ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+        delete: true
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes

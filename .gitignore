@@ -1,0 +1,4 @@
+ansible/roles/*
+!ansible/roles/requirements.yml
+
+inventory
