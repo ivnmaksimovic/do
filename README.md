@@ -30,6 +30,8 @@ Examples use `bob` as an example ssh user with permissions to hosts.
     `ansible-playbook ./ansible/playbooks/caddy-uninstall.yml --user bob --ask-become-pass`
 - Deliver site `dist` folder to server.
   `ansible-playbook ./ansible/playbooks/deliver.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
+- Deliver site `dist` folder to server. Site name is not same as project folder name.
+  `ansible-playbook ./ansible/playbooks/deliver.yml -e "site_name=adamontenegro.com project_name=ada-project-folder site_version=v1.9.0" --user bob --ask-become-pass`
 - Deploy a version.
   `ansible-playbook ./ansible/playbooks/deploy.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
 - Read deployment log.
