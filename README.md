@@ -7,8 +7,9 @@
 - Deploy Sites
 
 ## Install roles locally (dependencies)
-This is only needed because some playbooks are dependant on some roles. Like caddy.yml.
 `ansible-galaxy role install -r ansible/roles/requirements.yml -p ansible/roles`
+
+This is only needed because some playbooks are dependant on some community roles. Like caddy.yml.
 
 ## Setup inventory
 Copy `inventory.template` to `inventory`.
