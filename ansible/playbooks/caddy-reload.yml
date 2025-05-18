@@ -1,0 +1,8 @@
+- name: Reload Caddy server
+  hosts: all
+  become: true
+  tasks:
+    - name: Reload Caddy service
+      ansible.builtin.systemd:
+        name: caddy
+        state: reloaded

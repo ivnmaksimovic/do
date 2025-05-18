@@ -1,0 +1,17 @@
+---
+- name: Configure www CNAME records in DigitalOcean DNS
+  hosts: all
+  become: true
+  vars:
+    domain: "{{ site_name }}"
+  
+  tasks:
+    - name: Create www CNAME record pointing to root domain
+      community.digitalocean.digital_ocean_domain_record:
+        state: present
+        oauth_token: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
+        domain: "{{ domain }}"
+        type: CNAME
+        name: "www"
+        data: "@"  # Points to root domain (equivalent to your-domain.com)
+        ttl: 86400
