@@ -45,9 +45,8 @@ TODO
   `ansible-playbook playbooks/apt.yml --user bob --ask-become-pass`
 - Restart.
   `ansible-playbook playbooks/restart.yml --user bob --ask-become-pass`
-- TODO Enable the Droplet Console
-  "To enable the Droplet Console, log in to your Droplet as root or as a user with sudo access. Once connected, download and execute the agent installation script with the following command to enable the console immediately:"
-  `wget -qO- https://repos-droplet.digitalocean.com/install.sh | sudo bash`
+- Enable the Droplet Console
+  `ansible-playbook playbooks/enable-droplet-console.yml --user bob --ask-become-pass`
 
 ### Setup Caddy Server
 - Install Caddy and Setup Domains to serve
