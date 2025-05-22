@@ -1,0 +1,8 @@
+site_name: 332871.com
+mx_records: []
+  # - { host: "@", priority: 10, value: "mx.zoho.com" }
+  # - { host: "@", priority: 20, value: "mx2.zoho.com" }
+txt_records: []
+  # - { host: "@", value: "v=spf1 include:zoho.com ~all" }
+c_records:
+  - { host: "www", value: "@" }

@@ -26,44 +26,50 @@ Some playbooks require `export DO_API_TOKEN=your_do_api_token`. Copy from Bitwar
 TODO
 
 ### Create Domains and DNS Records
-- Setup DNS records like CNAME for www
-`ansible-playbook ./ansible/playbooks/cname-record.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
+- Setup DNS records. A record. It is set when creating a droplet.
+- Setup DNS records. CNAME for www
+  `ansible-playbook playbooks/cname-record.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
+- Setup DNS records. CNAME, TXT, and MX records if any exists.
+  `ansible-playbook playbooks/dns-records.yml -e adamontenegro.com --user bob --ask-become-pass`
 
 ### Do Initial Server Setup
 - Setup user. Add it to sudo and www-data groups. Get ssh key from root. This is first and only task that needs to be run as `root`.
   `ansible-playbook ansible/playbooks/user-setup.yml -e "user_name=bob" --user root`
 - Ping to test user permissions. Example of passing inventory.
-  `ansible -i ./ansible/inventories/inventory production -m ping --user bob`
+  `ansible -i inventories/inventory production -m ping --user bob`
 - Enable firewall.
-  `ansible-playbook ./ansible/playbooks/firewall.yml --user bob --ask-become-pass`
+  `ansible-playbook playbooks/firewall.yml --user bob --ask-become-pass`
 - Set timezone.
-  `ansible-playbook ./ansible/playbooks/timezone.yml --user bob --ask-become-pass`
+  `ansible-playbook playbooks/timezone.yml --user bob --ask-become-pass`
 - Maybe update packages.
-  `ansible-playbook ./ansible/playbooks/apt.yml --user bob --ask-become-pass`
+  `ansible-playbook playbooks/apt.yml --user bob --ask-become-pass`
 - Restart.
-  `ansible-playbook ./ansible/playbooks/restart.yml --user bob --ask-become-pass`
+  `ansible-playbook playbooks/restart.yml --user bob --ask-become-pass`
+- TODO Enable the Droplet Console
+  "To enable the Droplet Console, log in to your Droplet as root or as a user with sudo access. Once connected, download and execute the agent installation script with the following command to enable the console immediately:"
+  `wget -qO- https://repos-droplet.digitalocean.com/install.sh | sudo bash`
 
 ### Setup Caddy Server
-- Install Caddy.
+- Install Caddy and Setup Domains to serve
   `ansible-playbook ansible/playbooks/caddy.yml -e "email=me@example.com" --user bob --ask-become-pass`
 - Uninstall Caddy.
-    `ansible-playbook ./ansible/playbooks/caddy-uninstall.yml --user bob --ask-become-pass`
+    `ansible-playbook playbooks/caddy-uninstall.yml --user bob --ask-become-pass`
 - Reload Caddy. Requires `DO_API_TOKEN` to be set.
-    `ansible-playbook ./ansible/playbooks/caddy-reload.yml --user bob --ask-become-pass`
+    `ansible-playbook playbooks/caddy-reload.yml --user bob --ask-become-pass`
 
 ### Deliver Static Sites to Server
 - Build
-  `ansible-playbook ./ansible/playbooks/build.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
+  `ansible-playbook playbooks/build.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
 - Deliver site `dist` folder to server.
-  `ansible-playbook ./ansible/playbooks/deliver.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
+  `ansible-playbook playbooks/deliver.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
 - Deliver site `dist` folder to server. Site name is not same as project folder name.
-  `ansible-playbook ./ansible/playbooks/deliver.yml -e "site_name=adamontenegro.com project_name=ada-project-folder site_version=v1.9.0" --user bob --ask-become-pass`
+  `ansible-playbook playbooks/deliver.yml -e "site_name=adamontenegro.com project_name=ada-project-folder site_version=v1.9.0" --user bob --ask-become-pass`
 
 ### Deploy Sites
 - Deploy a version.
-  `ansible-playbook ./ansible/playbooks/deploy.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
+  `ansible-playbook playbooks/deploy.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
 - Read deployment log.
-  `ansible-playbook ./ansible/playbooks/deployment-log.yml -e "site_name=adamontenegro.com limit=5" --user bob --ask-become-pass`
+  `ansible-playbook playbooks/deployment-log.yml -e "site_name=adamontenegro.com limit=5" --user bob --ask-become-pass`
 
 ## Tips
 To see all the magic variables

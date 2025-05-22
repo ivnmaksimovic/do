@@ -1,0 +1,42 @@
+- name: Configure DNS records
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Debug c_records
+      debug:
+        var: c_records
+    - name: Add CNAME records (if any)
+      community.digitalocean.digital_ocean_domain_record:
+        state: present
+        oauth_token: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
+        domain: "{{ site_name }}"
+        type: CNAME
+        name: "{{ item.host }}"
+        data: "{{ item.value }}"
+        ttl: 86400
+      loop: "{{ c_records | default([]) }}"
+      when: c_records is defined
+
+    - name: Add MX records for Zoho (if any)
+      community.digitalocean.digital_ocean_domain_record:
+        state: present
+        domain: "{{ site_name }}"
+        type: MX
+        name: "{{ item.host }}"
+        priority: "{{ item.priority }}"
+        value: "{{ item.value }}"
+        oauth_token: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
+      loop: "{{ mx_records | default([]) }}"
+      when: mx_records is defined
+
+    - name: Add TXT records for Zoho (if any)
+      community.digitalocean.digital_ocean_domain_record:
+        state: present
+        domain: "{{ site_name }}"
+        type: TXT
+        name: "{{ item.host }}"
+        value: "{{ item.value }}"
+        oauth_token: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
+      loop: "{{ txt_records | default([]) }}"
+      when: txt_records is defined
