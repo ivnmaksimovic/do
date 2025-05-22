@@ -1,0 +1,26 @@
+---
+- name: Enable DigitalOcean Droplet Console
+  hosts: all
+  become: true
+  tasks:
+    - name: Check if DigitalOcean droplet agent is already installed
+      ansible.builtin.stat:
+        path: /opt/droplet-agent/bin/droplet-agent
+      register: do_agent
+
+    - name: Download DigitalOcean Droplet Console agent installation script
+      ansible.builtin.get_url:
+        url: https://repos-droplet.digitalocean.com/install.sh
+        dest: /tmp/do-agent-install.sh
+        mode: '0755'
+      when: not do_agent.stat.exists
+
+    - name: Run DigitalOcean Droplet Console agent installation script
+      ansible.builtin.command: bash /tmp/do-agent-install.sh
+      when: not do_agent.stat.exists
+
+    - name: Clean up installation script
+      ansible.builtin.file:
+        path: /tmp/do-agent-install.sh
+        state: absent
+      when: not do_agent.stat.exists 
