@@ -23,7 +23,17 @@ Examples use `bob` as an example ssh user with permissions to hosts.
 Some playbooks require `export DO_API_TOKEN=your_do_api_token`. Copy from Bitwarden.
 
 ### Create a Droplet (VM) in Digital Ocean
-TODO
+These playbooks use Digital Ocean API and not ssh.
+
+- Set DO_SSH_KEY_FINGERPRINTS env var.
+  Find your SSH key fingerprints in the DigitalOcean dashboard under "Security" > "SSH Keys" or via the DigitalOcean API
+    `export DO_SSH_KEY_FINGERPRINTS="3b:16:...,another:fingerprint"`
+
+- Create a Droplet
+  `ansible-playbook playbooks/droplet-create.yml -e "droplet_name=my-droplet-name"`
+
+- Destroy a Droplet
+  `ansible-playbook playbooks/droplet-destroy.yml -e "droplet_name=my-droplet-name"`
 
 ### Create Domains and DNS Records
 - Setup DNS records. A record. It is set when creating a droplet.
