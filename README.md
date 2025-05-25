@@ -1,13 +1,13 @@
 # Server setup
 - Create a Droplet (VM) in Digital Ocean
-- Create Domains and DNS Records
 - Do Initial Server Setup
+- Create Domains and DNS Records
 - Setup Caddy Server
 - Deliver Static Sites to Server
 - Deploy Sites
 
 ## Install roles locally (dependencies)
-`ansible-galaxy role install -r ansible/roles/requirements.yml -p ansible/roles`
+`ansible-galaxy role install -r roles/requirements.yml -p ./roles`
 
 This is only needed because some playbooks are dependant on some community roles. Like caddy.yml.
 
@@ -35,16 +35,9 @@ These playbooks use Digital Ocean API and not ssh.
 - Destroy a Droplet
   `ansible-playbook playbooks/droplet-destroy.yml -e "droplet_name=my-droplet-name"`
 
-### Create Domains and DNS Records
-- Setup DNS records. A record. It is set when creating a droplet.
-- Setup DNS records. CNAME for www
-  `ansible-playbook playbooks/cname-record.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
-- Setup DNS records. CNAME, TXT, and MX records if any exists.
-  `ansible-playbook playbooks/dns-records.yml -e adamontenegro.com --user bob --ask-become-pass`
-
 ### Do Initial Server Setup
 - Setup user. Add it to sudo and www-data groups. Get ssh key from root. This is first and only task that needs to be run as `root`.
-  `ansible-playbook ansible/playbooks/user-setup.yml -e "user_name=bob" --user root`
+  `ansible-playbook playbooks/user-setup.yml -e "user_name=bob" --user root`
 - Ping to test user permissions. Example of passing inventory.
   `ansible -i inventories/inventory production -m ping --user bob`
 - Enable firewall.
@@ -58,9 +51,17 @@ These playbooks use Digital Ocean API and not ssh.
 - Enable the Droplet Console
   `ansible-playbook playbooks/enable-droplet-console.yml --user bob --ask-become-pass`
 
+### Create Domains and DNS Records
+- TODO Create a domain
+- Setup DNS records. A record. It is set when creating a domain
+- Setup DNS records. CNAME for www
+  `ansible-playbook playbooks/cname-record.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
+- Setup DNS records. CNAME, TXT, and MX records if any exists.
+  `ansible-playbook playbooks/dns-records.yml -e adamontenegro.com --user bob --ask-become-pass`
+
 ### Setup Caddy Server
 - Install Caddy and Setup Domains to serve
-  `ansible-playbook ansible/playbooks/caddy.yml -e "email=me@example.com" --user bob --ask-become-pass`
+  `ansible-playbook playbooks/caddy.yml -e "email=me@example.com" --user bob --ask-become-pass`
 - Uninstall Caddy.
     `ansible-playbook playbooks/caddy-uninstall.yml --user bob --ask-become-pass`
 - Reload Caddy. Requires `DO_API_TOKEN` to be set.
