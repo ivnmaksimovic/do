@@ -1,0 +1,10 @@
+[project]
+name = "do"
+version = "0.1.0"
+description = "Ansible playbooks to manage Digital Ocean Droplets"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ansible>=11.6.0",
+    "passlib>=1.7.4",
+]

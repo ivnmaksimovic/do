@@ -3,6 +3,14 @@
   hosts: all
   become: true
 
+  vars_prompt:
+    - name: "user_password"
+      prompt: "Enter password for the new user"
+      private: yes
+
+  vars:
+    user_password_hashed: "{{ user_password | password_hash('sha512') }}"
+
   tasks:
     - name: Create user with sudo privileges
       ansible.builtin.user:
@@ -12,6 +20,7 @@
         shell: /bin/bash
         create_home: yes
         system: false
+        password: "{{ user_password_hashed }}"
 
     - name: Ensure .ssh directory exists for new user
       ansible.builtin.file:

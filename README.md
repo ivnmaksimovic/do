@@ -1,15 +1,28 @@
-# Server setup
+# DO
+
+## Requirements
+- [UV](https://docs.astral.sh/uv/getting-started/installation/)
+  `curl -LsSf https://astral.sh/uv/0.7.8/install.sh | sh`
+
+## Getting Started
+- Sync the project's dependencies with the environment.
+  `uv sync`
+  This includes Ansible as well.
+- Copy `inventories/inventory.template` to `inventories-prod` etc.
+- Populate inventory files.
+- Install roles locally
+  `uv run ansible-galaxy role install -r roles/requirements.yml -p ./roles`
+  Most playbooks don't need this.
+- Run Ansible
+  `uv run ansible -i inventories/inventory-lab lab -m ping --user root`
+
+## Server setup
 - Create a Droplet (VM) in Digital Ocean
 - Do Initial Server Setup
 - Create Domains and DNS Records
 - Setup Caddy Server
 - Deliver Static Sites to Server
 - Deploy Sites
-
-## Install roles locally (dependencies)
-`ansible-galaxy role install -r roles/requirements.yml -p ./roles`
-
-This is only needed because some playbooks are dependant on some community roles. Like caddy.yml.
 
 ## Setup inventory
 Copy `inventory.template` to `inventory`.
@@ -36,18 +49,24 @@ These playbooks use Digital Ocean API and not ssh.
   `ansible-playbook playbooks/droplet-destroy.yml -e "droplet_name=my-droplet-name"`
 
 ### Do Initial Server Setup
-- Setup user. Add it to sudo and www-data groups. Get ssh key from root. This is first and only task that needs to be run as `root`.
+- Setup user. Add it to sudo and www-data groups. Get ssh key from root. This is first and only task that needs to be run as `root`. This user will need sudo password so it will be prompted for it. This is dependant on `passlib`. 
   `ansible-playbook playbooks/user-setup.yml -e "user_name=bob" --user root`
+
 - Ping to test user permissions. Example of passing inventory.
-  `ansible -i inventories/inventory production -m ping --user bob`
+  `ansible -i inventories/inventory lab -m ping --user bob`
+
 - Enable firewall.
   `ansible-playbook playbooks/firewall.yml --user bob --ask-become-pass`
+
 - Set timezone.
   `ansible-playbook playbooks/timezone.yml --user bob --ask-become-pass`
-- Maybe update packages.
-  `ansible-playbook playbooks/apt.yml --user bob --ask-become-pass`
+
 - Restart.
   `ansible-playbook playbooks/restart.yml --user bob --ask-become-pass`
+
+- Update packages.
+  `ansible-playbook playbooks/apt.yml --user bob --ask-become-pass`
+
 - Enable the Droplet Console
   `ansible-playbook playbooks/enable-droplet-console.yml --user bob --ask-become-pass`
 
