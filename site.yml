@@ -13,7 +13,7 @@
   tasks:
     # Initial user setup (run as root)
     - name: Setup user and permissions
-      import_playbook: playbooks/user-setup.yml
+      import_tasks: playbooks/user-setup.yml
       vars:
         user_name: "{{ user_name }}"
       become: true
@@ -27,41 +27,41 @@
 
     # Enable firewall
     - name: Enable firewall
-      import_playbook: playbooks/firewall.yml
+      import_tasks: playbooks/firewall.yml
       become: true
 
     # Set timezone
     - name: Set timezone
-      import_playbook: playbooks/timezone.yml
+      import_tasks: playbooks/timezone.yml
       become: true
 
     # Update packages
     - name: Update packages
-      import_playbook: playbooks/apt.yml
+      import_tasks: playbooks/apt.yml
       become: true
 
     # Restart server
     - name: Restart server
-      import_playbook: playbooks/restart.yml
+      import_tasks: playbooks/restart.yml
       become: true
 
     # Setup Caddy server
     - name: Install Caddy
-      import_playbook: playbooks/caddy.yml
+      import_tasks: playbooks/caddy.yml
       vars:
         email: "{{ email }}"
       become: true
 
     # Setup DNS records (CNAME, MX, TXT, etc.)
     - name: Manage DNS records
-      import_playbook: playbooks/cname-record.yml
+      import_tasks: playbooks/dns-records.yml
       vars:
         site_name: "{{ site_name }}"
       become: true
 
     # Deliver static site
     - name: Build and deliver static site
-      import_playbook: playbooks/deliver.yml
+      import_tasks: playbooks/deliver.yml
       vars:
         site_name: "{{ site_name }}"
         site_version: "{{ site_version }}"
@@ -70,7 +70,7 @@
 
     # Deploy static site
     - name: Deploy static site
-      import_playbook: playbooks/deploy.yml
+      import_tasks: playbooks/deploy.yml
       vars:
         site_name: "{{ site_name }}"
         site_version: "{{ site_version }}"
@@ -78,7 +78,7 @@
 
     # Read deployment log
     - name: Read deployment log
-      import_playbook: playbooks/deployment-log.yml
+      import_tasks: playbooks/deployment-log.yml
       vars:
         site_name: "{{ site_name }}"
         limit: "{{ limit }}"

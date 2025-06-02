@@ -1,2 +1,5 @@
+[lab]
+do-web-ubuntu-002 ansible_host=vm1-ip environment_name=lab domain_prefix="lab"
+
 [production]
-droplet-ip
+do-web-ubuntu-001 ansible_host=vm2-ip environment_name=production domain_prefix=""

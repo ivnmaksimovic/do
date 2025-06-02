@@ -71,35 +71,49 @@ These playbooks use Digital Ocean API and not ssh.
   `ansible-playbook playbooks/enable-droplet-console.yml --user bob --ask-become-pass`
 
 ### Create Domains and DNS Records
-- TODO Create a domain
-- Setup DNS records. A record. It is set when creating a domain
-- Setup DNS records. CNAME for www
-  `ansible-playbook playbooks/cname-record.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
-- Setup DNS records. CNAME, TXT, and MX records if any exists.
-  `ansible-playbook playbooks/dns-records.yml -e adamontenegro.com --user bob --ask-become-pass`
+- TODO Create a domain. It also sets an A record if ip is provided.
+
+- Setup DNS records. A, CNAME, TXT, MX, NS records if any exists.
+
+  `ansible-playbook playbooks/dns-records.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
 
 ### Setup Caddy Server
 - Install Caddy and Setup Domains to serve
   `ansible-playbook playbooks/caddy.yml -e "email=me@example.com" --user bob --ask-become-pass`
+
 - Uninstall Caddy.
     `ansible-playbook playbooks/caddy-uninstall.yml --user bob --ask-become-pass`
+
 - Reload Caddy. Requires `DO_API_TOKEN` to be set.
     `ansible-playbook playbooks/caddy-reload.yml --user bob --ask-become-pass`
 
 ### Deliver Static Sites to Server
 - Build
   `ansible-playbook playbooks/build.yml -e "site_name=adamontenegro.com" --user bob --ask-become-pass`
+
 - Deliver site `dist` folder to server.
   `ansible-playbook playbooks/deliver.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
+
 - Deliver site `dist` folder to server. Site name is not same as project folder name.
   `ansible-playbook playbooks/deliver.yml -e "site_name=adamontenegro.com project_name=ada-project-folder site_version=v1.9.0" --user bob --ask-become-pass`
 
 ### Deploy Sites
 - Deploy a version.
   `ansible-playbook playbooks/deploy.yml -e "site_name=adamontenegro.com site_version=v1.9.0" --user bob --ask-become-pass`
+
 - Read deployment log.
   `ansible-playbook playbooks/deployment-log.yml -e "site_name=adamontenegro.com limit=5" --user bob --ask-become-pass`
 
 ## Tips
+To target two inventory sources from the command line:
+`ansible-playbook get_logs.yml -i inventories/staging -i inventories/production`
+
+To target all inventories from the `inventories` folder:
+`ansible-playbook get_logs.yml -i inventories`
+
 To see all the magic variables
-`ansible <hostname> -m ansible.builtin.setup --user root`
+`ansible hostname -m ansible.builtin.setup --user bob`
+`ansible -m setup hostname --user bob`
+
+See inventory variables for a host
+`ansible-inventory --list --yaml`

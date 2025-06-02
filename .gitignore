@@ -1,4 +1,23 @@
+
+
+
+
+# Project
+*.retry
+.vault_pass
+secrets.yml
 roles/*
 !roles/requirements.yml
+inventories/hosts
+.venv
 
-inventory*
+# Local environment files
+.env
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

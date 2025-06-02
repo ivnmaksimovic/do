@@ -3,9 +3,42 @@
   become: true
 
   tasks:
+
+    - name: Debug planned A records
+      debug:
+        var: a_records
+
     - name: Debug c_records
       debug:
         var: c_records
+
+    - name: Debug mx_records
+      debug:
+        var: mx_records
+
+    - name: Debug txt_records
+      debug:
+        var: txt_records
+        
+    - name: Debug ns_records
+      debug:
+        var: ns_records
+
+    - name: Create A record for subdomain or root
+      community.digitalocean.digital_ocean_domain_record:
+        state: present
+        oauth_token: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
+        domain: "{{ site_name }}"
+        type: A
+        name: "{{ item.name }}"
+        data: "{{ item.ip }}"
+        force_update: true
+        ttl: 86400
+      loop: "{{ a_records }}"
+      loop_control:
+        label: "{{ item.fqdn }} -> {{ item.ip }}"
+      when: site_name is defined and ansible_host is defined
+
     - name: Add CNAME records (if any)
       community.digitalocean.digital_ocean_domain_record:
         state: present
@@ -17,6 +50,7 @@
         ttl: 86400
       loop: "{{ c_records | default([]) }}"
       when: c_records is defined
+      run_once: true
 
     - name: Add MX records for Zoho (if any)
       community.digitalocean.digital_ocean_domain_record:
@@ -29,7 +63,8 @@
         oauth_token: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
       loop: "{{ mx_records | default([]) }}"
       when: mx_records is defined
-
+      run_once: true
+        
     - name: Add TXT records for Zoho (if any)
       community.digitalocean.digital_ocean_domain_record:
         state: present
@@ -40,3 +75,45 @@
         oauth_token: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
       loop: "{{ txt_records | default([]) }}"
       when: txt_records is defined
+      run_once: true
+
+    - name: Get existing NS records for debugging
+      uri:
+        url: "https://api.digitalocean.com/v2/domains/{{ site_name }}/records?type=NS"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
+          Content-Type: "application/json"
+      register: do_existing_ns_records
+      run_once: true
+      when: site_name is defined
+
+    - name: Debug - Show existing NS records
+      debug:
+        msg: "{{ do_existing_ns_records.json.domain_records }}"
+      run_once: true
+      when: do_existing_ns_records is defined
+
+    - name: Skip NS records management as they already exist
+      debug:
+        msg: "NS records for {{ site_name }} already exist, skipping NS record management"
+      run_once: true  
+      when: >
+        ns_records is defined and do_existing_ns_records is defined and
+        do_existing_ns_records.json.domain_records | length > 0
+
+    - name: Add NS records (if they don't exist yet)
+      community.digitalocean.digital_ocean_domain_record:
+        state: present
+        oauth_token: "{{ lookup('ansible.builtin.env', 'DO_API_TOKEN') }}"
+        domain: "{{ site_name }}"
+        type: NS
+        name: "{{ item.host }}"
+        data: "{{ item.value }}"
+        ttl: 86400
+      loop: "{{ ns_records | default([]) }}"
+      run_once: true
+      when: >
+        ns_records is defined and 
+        (do_existing_ns_records is not defined or
+         do_existing_ns_records.json.domain_records | length == 0)
